@@ -1,0 +1,57 @@
+{
+  "config": {
+    "precios_simulacion": [
+      2.6,
+      3.65,
+      4.0,
+      14.0
+    ]
+  },
+  "lotes_millas": [
+    {
+      "id": "a1b2c3d4-0000-0000-0000-000000000001",
+      "fecha": "2025-03-15",
+      "cantidad": 121000,
+      "precio_por_milla": 3.65,
+      "notas": "Promo 75% off"
+    }
+  ],
+  "tickets": [
+    {
+      "aerolinea": "Air Europa",
+      "origen": "MAD",
+      "destino": "EZE",
+      "fecha_vuelo": "2027-03-10",
+      "millas_vuelo": 197300,
+      "viaje_facil": true,
+      "estado": "evaluando",
+      "tasas": [
+        {
+          "monto": 41953,
+          "moneda": "ARS"
+        }
+      ],
+      "notas": "4 restantes al 13 de mayo del 26",
+      "millas_canceladas": 0,
+      "id": "80fa1251-a2b6-42b6-800d-4ece0e793005"
+    },
+    {
+      "aerolinea": "Air France",
+      "origen": "EZE",
+      "destino": "CDG",
+      "fecha_vuelo": "2027-02-18",
+      "millas_vuelo": 241200,
+      "viaje_facil": true,
+      "estado": "evaluando",
+      "tasas": [
+        {
+          "monto": 108160,
+          "moneda": "ARS"
+        }
+      ],
+      "notas": "9 lugares restantes al 13 de mayo del 26",
+      "millas_canceladas": 0,
+      "id": "77b0e202-2ae8-460d-8a8e-10fdf8bd84c7"
+    }
+  ]
+}

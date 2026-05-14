@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smiles Calculator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <span class="app-title">✈ Smiles</span>
+    <span id="header-stats" class="header-stats"></span>
+  </header>
+
+  <nav class="tab-bar">
+    <a href="#" data-section="dashboard" class="active">Dashboard</a>
+    <a href="#" data-section="millas">Mis Millas</a>
+    <a href="#" data-section="tickets">Tickets</a>
+    <a href="#" data-section="config">Configuración</a>
+  </nav>
+
+  <main class="content">
+
+    <!-- DASHBOARD -->
+    <section id="section-dashboard" class="section active">
+      <div class="stats-grid" id="dashboard-stats"></div>
+      <div id="dashboard-alertas"></div>
+      <div id="dashboard-evaluando"></div>
+    </section>
+
+    <!-- MIS MILLAS -->
+    <section id="section-millas" class="section">
+      <div class="section-header">
+        <span class="section-title">Mis Millas</span>
+        <button class="btn-primary" onclick="abrirModalLote()">+ Agregar lote</button>
+      </div>
+      <div class="table-wrapper">
+        <table id="tabla-millas">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th class="num">Cantidad</th>
+              <th class="num">Precio / milla</th>
+              <th class="num">Costo total</th>
+              <th>Notas</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="millas-body"></tbody>
+          <tfoot id="millas-foot"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- TICKETS -->
+    <section id="section-tickets" class="section">
+      <div class="section-header">
+        <span class="section-title">Tickets</span>
+        <button class="btn-primary" onclick="abrirModalTicket()">+ Agregar ticket</button>
+      </div>
+      <div class="filtros">
+        <button class="filtro active" data-filtro="todos">Todos</button>
+        <button class="filtro" data-filtro="evaluando">Evaluando</button>
+        <button class="filtro" data-filtro="emitido">Emitidos</button>
+        <button class="filtro" data-filtro="descartado">Descartados</button>
+      </div>
+      <div id="tickets-lista"></div>
+    </section>
+
+    <!-- CONFIG -->
+    <section id="section-config" class="section">
+      <div class="section-header">
+        <span class="section-title">Configuración</span>
+      </div>
+      <div class="config-card">
+        <div class="config-card-title">Precios de simulación <span class="unit-badge">ARS / milla</span></div>
+        <p class="config-desc">Estos precios se usan para calcular el costo estimado de cada ticket.</p>
+        <div id="precios-lista"></div>
+        <button class="btn-ghost" onclick="agregarPrecio()">+ Agregar precio</button>
+        <div class="config-save-row">
+          <button class="btn-primary" onclick="guardarConfig()">Guardar cambios</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL LOTE MILLAS -->
+  <dialog id="modal-lote">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-lote-titulo">Agregar lote de millas</span>
+        <button class="modal-close" onclick="cerrarModal('modal-lote')">✕</button>
+      </div>
+      <form id="form-lote" class="modal-body" onsubmit="guardarLote(event)">
+        <input type="hidden" id="lote-id">
+        <div class="field">
+          <label>Fecha de compra</label>
+          <input type="date" id="lote-fecha" required>
+        </div>
+        <div class="field">
+          <label>Cantidad de millas</label>
+          <input type="number" id="lote-cantidad" min="1" required placeholder="121000">
+        </div>
+        <div class="field">
+          <label>Precio por milla (ARS)</label>
+          <input type="number" id="lote-precio" step="0.01" min="0.01" required placeholder="3.65">
+        </div>
+        <div class="field">
+          <label>Notas</label>
+          <input type="text" id="lote-notas" placeholder="Promo 75% off">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick="cerrarModal('modal-lote')">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- MODAL TICKET -->
+  <dialog id="modal-ticket">
+    <div class="modal-box modal-wide">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-ticket-titulo">Agregar ticket</span>
+        <button class="modal-close" onclick="cerrarModal('modal-ticket')">✕</button>
+      </div>
+      <form id="form-ticket" class="modal-body" onsubmit="guardarTicket(event)">
+        <input type="hidden" id="ticket-id">
+        <div class="form-grid-2">
+          <div class="field">
+            <label>Aerolínea</label>
+            <input type="text" id="ticket-aerolinea" required placeholder="Gol, LATAM, Aerolíneas...">
+          </div>
+          <div class="field">
+            <label>Estado</label>
+            <select id="ticket-estado">
+              <option value="evaluando">Evaluando</option>
+              <option value="emitido">Emitido</option>
+              <option value="descartado">Descartado</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Origen (IATA)</label>
+            <input type="text" id="ticket-origen" required placeholder="EZE" maxlength="3" style="text-transform:uppercase">
+          </div>
+          <div class="field">
+            <label>Destino (IATA)</label>
+            <input type="text" id="ticket-destino" required placeholder="GRU" maxlength="3" style="text-transform:uppercase">
+          </div>
+          <div class="field">
+            <label>Fecha del vuelo</label>
+            <input type="date" id="ticket-fecha" required>
+          </div>
+          <div class="field">
+            <label>Millas del vuelo</label>
+            <input type="number" id="ticket-millas" min="1" required placeholder="45000">
+          </div>
+        </div>
+        <div class="field-inline">
+          <input type="checkbox" id="ticket-vf">
+          <label for="ticket-vf" class="label-inline">Viaje Fácil</label>
+        </div>
+        <div class="field">
+          <label>Tasas e impuestos</label>
+          <div id="tasas-lista"></div>
+          <button type="button" class="btn-ghost" onclick="agregarTasa()">+ Agregar tasa</button>
+        </div>
+        <div class="field">
+          <label>Notas</label>
+          <textarea id="ticket-notas" rows="2"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick="cerrarModal('modal-ticket')">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
