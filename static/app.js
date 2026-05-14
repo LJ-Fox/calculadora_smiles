@@ -198,18 +198,29 @@ function renderDashboard() {
       <table>
         <thead><tr>
           <th>Ruta</th><th>Aerolínea</th><th>Fecha</th>
-          <th class="num">Millas</th><th class="num">Costo a $ ${pp.toFixed(2)}</th>
+          <th class="num">Millas</th>
+          <th class="num">Costo millas<br><span style="font-weight:400;text-transform:none;letter-spacing:0">a $ ${pp.toFixed(2)}</span></th>
+          <th class="num">Tasas</th>
+          <th class="num">Pesos canje</th>
+          <th class="num">Total ARS</th>
         </tr></thead>
         <tbody>
           ${evaluando.map(t => {
+            const nt = normalizarTicket(t);
             const tm = millasTicket(t);
-            const total = tm * pp + tasasARS(t);
+            const costoMillas = tm * pp;
+            const tasa = tasasARS(t);
+            const pesos = nt.tipo_canje === "millas_pesos" ? (t.pesos_canje || 0) : 0;
+            const total = costoMillas + tasa + pesos;
             return `<tr>
               <td>${t.origen} → ${t.destino}</td>
               <td>${t.aerolinea}</td>
               <td>${fmtFecha(t.fecha_vuelo)}</td>
               <td class="num">${fmtNum(tm)}</td>
-              <td class="num">${ars(total)}</td>
+              <td class="num">${ars(costoMillas)}</td>
+              <td class="num">${tasa > 0 ? ars(tasa) : "—"}</td>
+              <td class="num">${pesos > 0 ? ars(pesos) : "—"}</td>
+              <td class="num"><strong>${ars(total)}</strong></td>
             </tr>`;
           }).join("")}
         </tbody>
