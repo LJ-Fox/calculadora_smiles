@@ -120,8 +120,8 @@
   </dialog>
 
   <!-- MODAL TICKET -->
-  <dialog id="modal-ticket">
-    <div class="modal-box modal-wide">
+  <dialog id="modal-ticket" class="dialog-wide">
+    <div class="modal-box">
       <div class="modal-header">
         <span class="modal-title" id="modal-ticket-titulo">Agregar ticket</span>
         <button class="modal-close" onclick="cerrarModal('modal-ticket')">✕</button>
@@ -157,6 +157,23 @@
             <label>Millas del vuelo</label>
             <input type="number" id="ticket-millas" min="1" required placeholder="45000">
           </div>
+        </div>
+        <div class="field">
+          <label>Tipo de canje</label>
+          <div class="segmented">
+            <label class="seg-opt">
+              <input type="radio" name="tipo_canje" value="normal" id="tipo-normal">
+              <span>Normal</span>
+            </label>
+            <label class="seg-opt">
+              <input type="radio" name="tipo_canje" value="millas_pesos" id="tipo-mp">
+              <span>Millas + Pesos</span>
+            </label>
+          </div>
+        </div>
+        <div class="field" id="campo-pesos-canje" style="display:none">
+          <label>Pesos a pagar (ARS)</label>
+          <input type="number" id="ticket-pesos-canje" min="0" placeholder="50000">
         </div>
         <div class="field-inline">
           <input type="checkbox" id="ticket-vf">

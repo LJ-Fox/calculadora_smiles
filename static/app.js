@@ -44,6 +44,13 @@ function iniciarNav() {
     });
   });
 
+  document.querySelectorAll('input[name="tipo_canje"]').forEach(radio => {
+    radio.addEventListener("change", () => {
+      document.getElementById("campo-pesos-canje").style.display =
+        radio.value === "millas_pesos" ? "" : "none";
+    });
+  });
+
   document.querySelectorAll(".filtro").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".filtro").forEach(b => b.classList.remove("active"));
@@ -69,6 +76,15 @@ function calcularPrecioPromedio() {
   if (total === 0) return 0;
   const ponderado = state.lotes_millas.reduce((s, l) => s + l.cantidad * l.precio_por_milla, 0);
   return ponderado / total;
+}
+
+function normalizarTicket(t) {
+  // backward compat: old model usaba viaje_facil:bool sin tipo_canje
+  // estado intermedio usaba tipo_canje:"viaje_facil" (incorrecto)
+  let tipo = t.tipo_canje || "normal";
+  let vf = !!t.viaje_facil;
+  if (tipo === "viaje_facil") { tipo = "normal"; vf = true; }
+  return { ...t, tipo_canje: tipo, viaje_facil: vf };
 }
 
 function millasTicket(ticket) {
@@ -110,7 +126,7 @@ function fmtFecha(iso) {
 function renderDashboard() {
   const { totalCompradas, totalCanceladas, disponibles, precioPromedio } = calcularTotalesMillas();
 
-  const ticketsEmitidos = state.tickets.filter(t => t.estado === "emitido" && t.viaje_facil);
+  const ticketsEmitidos = state.tickets.filter(t => t.estado === "emitido" && normalizarTicket(t).viaje_facil);
   const millasPendientes = ticketsEmitidos.reduce((s, t) => {
     const total = millasTicket(t);
     return s + (total - (t.millas_canceladas || 0));
@@ -260,7 +276,11 @@ function renderTicketCard(ticket) {
     : "Sin tasas";
   const badgeClass = `badge-${ticket.estado}`;
   const labels = { evaluando: "Evaluando", emitido: "Emitido", descartado: "Descartado" };
-  const vfBadge = ticket.viaje_facil ? `<span class="badge" style="background:#ede9fe;color:#7c3aed">Viaje Fácil</span>` : "";
+  const nt = normalizarTicket(ticket);
+  const tipoBadge = [
+    nt.tipo_canje === "millas_pesos" ? `<span class="badge" style="background:#fef3c7;color:#b45309">Millas + Pesos</span>` : "",
+    nt.viaje_facil ? `<span class="badge" style="background:#ede9fe;color:#7c3aed">Viaje Fácil</span>` : "",
+  ].join("");
 
   return `
     <div class="ticket-card" id="card-${ticket.id}">
@@ -269,7 +289,7 @@ function renderTicketCard(ticket) {
         <div class="ticket-meta">
           ${ticket.aerolinea} · ${fmtFecha(ticket.fecha_vuelo)} · ${fmtNum(tm)} millas · Tasas: ${resumenTasas}
         </div>
-        ${vfBadge}
+        ${tipoBadge}
         <span class="badge ${badgeClass}">${labels[ticket.estado]}</span>
         <div class="ticket-actions" onclick="event.stopPropagation()">
           <button class="btn-sm" onclick='abrirModalTicket(${JSON.stringify(ticket)})'>Editar</button>
@@ -278,7 +298,7 @@ function renderTicketCard(ticket) {
       </div>
       <div class="ticket-detalle" id="detalle-${ticket.id}">
         ${renderSimulacion(ticket)}
-        ${ticket.viaje_facil && ticket.estado === "emitido" ? renderVFPanel(ticket) : ""}
+        ${normalizarTicket(ticket).viaje_facil && ticket.estado === "emitido" ? renderVFPanel(ticket) : ""}
         ${ticket.notas ? `<p style="margin-top:10px;color:#9ca3af;font-size:12px"><em>${ticket.notas}</em></p>` : ""}
       </div>
     </div>`;
@@ -289,16 +309,20 @@ function renderSimulacion(ticket) {
   const tm = millasTicket(ticket);
   const ars_ = tasasARS(ticket);
   const pp = calcularPrecioPromedio();
+  const nt = normalizarTicket(ticket);
+  const pesosCanje = nt.tipo_canje === "millas_pesos" ? (ticket.pesos_canje || 0) : 0;
+  const mostrarPesos = nt.tipo_canje === "millas_pesos";
 
   const filas = precios.map(p => {
     const costoMillas = tm * p;
-    const total = costoMillas + ars_;
+    const total = costoMillas + pesosCanje + ars_;
     const esPromedio = Math.abs(p - pp) < 0.01;
     const cls = esPromedio ? "sim-row-highlight" : "";
     const estrella = esPromedio ? " ★" : "";
     return `<tr class="${cls}">
       <td>$ ${p.toFixed(2)}${estrella}</td>
       <td class="num">${ars(costoMillas)}</td>
+      ${mostrarPesos ? `<td class="num">${ars(pesosCanje)}</td>` : ""}
       <td class="num">${ars_ > 0 ? ars(ars_) : "—"}</td>
       <td class="num"><strong>${ars(total)}</strong></td>
     </tr>`;
@@ -309,6 +333,7 @@ function renderSimulacion(ticket) {
       <thead><tr>
         <th>Precio milla</th>
         <th class="num">Costo millas</th>
+        ${mostrarPesos ? `<th class="num">Pesos canje</th>` : ""}
         <th class="num">Tasas ARS</th>
         <th class="num">Total ARS</th>
       </tr></thead>
@@ -472,9 +497,14 @@ function abrirModalTicket(ticket = null) {
   document.getElementById("ticket-destino").value = ticket?.destino || "";
   document.getElementById("ticket-fecha").value = ticket?.fecha_vuelo || "";
   document.getElementById("ticket-millas").value = ticket?.millas_vuelo || "";
-  document.getElementById("ticket-vf").checked = ticket?.viaje_facil || false;
   document.getElementById("ticket-estado").value = ticket?.estado || "evaluando";
   document.getElementById("ticket-notas").value = ticket?.notas || "";
+
+  const nt = ticket ? normalizarTicket(ticket) : { tipo_canje: "normal", viaje_facil: false };
+  document.querySelector(`input[name="tipo_canje"][value="${nt.tipo_canje}"]`).checked = true;
+  document.getElementById("ticket-vf").checked = nt.viaje_facil;
+  document.getElementById("ticket-pesos-canje").value = ticket?.pesos_canje || "";
+  document.getElementById("campo-pesos-canje").style.display = nt.tipo_canje === "millas_pesos" ? "" : "none";
 
   const tasasEl = document.getElementById("tasas-lista");
   tasasEl.innerHTML = "";
@@ -509,12 +539,15 @@ async function guardarTicket(e) {
     }))
     .filter(t => t.monto > 0);
 
+  const tipoCanje = document.querySelector('input[name="tipo_canje"]:checked')?.value || "normal";
   const ticket = {
     aerolinea: document.getElementById("ticket-aerolinea").value,
     origen: document.getElementById("ticket-origen").value.toUpperCase(),
     destino: document.getElementById("ticket-destino").value.toUpperCase(),
     fecha_vuelo: document.getElementById("ticket-fecha").value,
     millas_vuelo: parseInt(document.getElementById("ticket-millas").value),
+    tipo_canje: tipoCanje,
+    pesos_canje: tipoCanje === "millas_pesos" ? (parseFloat(document.getElementById("ticket-pesos-canje").value) || 0) : 0,
     viaje_facil: document.getElementById("ticket-vf").checked,
     estado: document.getElementById("ticket-estado").value,
     tasas,

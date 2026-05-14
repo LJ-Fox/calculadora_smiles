@@ -529,6 +529,10 @@ dialog {
   background: transparent;
 }
 
+dialog.dialog-wide {
+  max-width: 620px;
+}
+
 dialog::backdrop {
   background: rgba(17,24,39,0.5);
 }
@@ -542,7 +546,51 @@ dialog::backdrop {
   overflow: hidden;
 }
 
-.modal-wide { max-width: 620px; width: 620px; }
+/* ---- Segmented control ---- */
+.segmented {
+  display: inline-flex;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.seg-opt {
+  display: flex;
+  align-items: center;
+  text-transform: none;
+  letter-spacing: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.seg-opt input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.seg-opt span {
+  display: block;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  border-right: 1px solid #d1d5db;
+  white-space: nowrap;
+  transition: background 0.1s, color 0.1s;
+  cursor: pointer;
+  user-select: none;
+}
+
+.seg-opt:last-child span { border-right: none; }
+
+.seg-opt input[type="radio"]:checked + span {
+  background: #fff;
+  color: #2563eb;
+  font-weight: 600;
+}
 
 .modal-header {
   display: flex;
