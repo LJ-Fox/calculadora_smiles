@@ -153,10 +153,6 @@
             <label>Fecha del vuelo</label>
             <input type="date" id="ticket-fecha" required>
           </div>
-          <div class="field">
-            <label>Millas del vuelo</label>
-            <input type="number" id="ticket-millas" min="1" required placeholder="45000">
-          </div>
         </div>
         <div class="field">
           <label>Tipo de canje</label>
@@ -171,9 +167,15 @@
             </label>
           </div>
         </div>
-        <div class="field" id="campo-pesos-canje" style="display:none">
-          <label>Pesos a pagar (ARS)</label>
-          <input type="number" id="ticket-pesos-canje" min="0" placeholder="50000">
+        <div class="form-grid-2">
+          <div class="field">
+            <label>Millas del vuelo</label>
+            <input type="number" id="ticket-millas" min="1" required placeholder="45000">
+          </div>
+          <div class="field" id="campo-pesos-canje" style="display:none">
+            <label>Pesos a pagar (ARS)</label>
+            <input type="number" id="ticket-pesos-canje" min="0" placeholder="50000">
+          </div>
         </div>
         <div class="field-inline">
           <input type="checkbox" id="ticket-vf">
